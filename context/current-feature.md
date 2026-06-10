@@ -1,13 +1,29 @@
-# Current Feature
+# Current Feature: Contact Page
 
 ## Feature File
+`context/features/06-contact-page.md`
 
 ## Goals
+- `/contact` route with centered `max-w-3xl` layout and "Contact Us" h1 (text-3xl font-bold text-center)
+- White card form (Shadcn Form + react-hook-form + Zod): Name + Email side by side, Subject full width, Message textarea (6 rows)
+- All fields required with inline Zod validation errors below each field
+- Submit button `bg-black hover:bg-red-600` "Send Message" with loading spinner while submitting
+- Server Action `app/actions/sendContactEmail.ts` sends email via Resend on submit
+- React Email template `emails/ContactEmail.tsx` (fields: name, email, subject, message)
+- Success toast "Message sent! We'll get back to you soon." / error toast "Something went wrong. Please try again."
+- 3 info cards below: Email Us (info@thekickslab.com), Call Us (+27 12 345 6789), Location (123 Sneaker Street, Cape Town, South Africa)
 
 ## Notes
+- Matches old UI exactly (reference: old project `src/pages/Contact.jsx`)
+- Resend: send to `process.env.RESEND_TO_EMAIL`; from `"The Kicks Lab <onboarding@resend.dev>"` until custom domain verified
+- Add `RESEND_TO_EMAIL=info@thekickslab.com` to `.env.local`
+- Use Shadcn Form + Toaster + `toast()`; `focus:ring-red-500` on all inputs
+- Responsive: mobile (375px) stacks to 1 col; desktop (1280px) 2-col name/email + 3-col info cards
+- Convex/Clerk/Cloudinary not used in this feature
+- Components: `app/contact/page.tsx` (server shell), `components/ContactForm.tsx` (client), `app/actions/sendContactEmail.ts`, `emails/ContactEmail.tsx`
 
 ## Status
-`Not Started`
+`In Progress`
 
 ## History
 - `Navbar + Cart Drawer + Wishlist Drawer + Footer` — built Zustand stores `cartStore.ts` (items, totalItems/totalAmount derived, addItem merges by id+size, removeItem, updateQuantity, clearCart, localStorage persist with totals recomputed on rehydrate) and `wishlistStore.ts` (items, totalItems, addItem/removeItem/toggleItem/isInWishlist, persist); added ephemeral `uiStore.ts` so navbar icons open the sibling drawers without prop-drilling; added `formatZAR` helper to `lib/utils.ts` (R1799.99, no space). Installed shadcn `sheet`. Built `Navbar.tsx` (sticky white bar, next/image logo, Home/Shop/Contact links, lucide search/wishlist/cart/profile icons with red count badges, mobile hamburger dropdown, mounted-guard for hydration), `CartDrawer.tsx` + `WishlistDrawer.tsx` (shadcn Sheet right slide-in `sm:max-w-md`, item rows, subtotal + Clear/Checkout, Add to Cart/Remove, empty states → /shop), `Footer.tsx` (black 4-column grid, collapses on mobile, copyright bar); mounted all four in `layout.tsx`. Clerk UserButton deferred (no Clerk keys in env) — used profile-icon placeholder. `npm run build` passes. Committed together with the project scaffold as the first real commit (no remote configured — not pushed). Status: `Complete`
