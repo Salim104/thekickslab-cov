@@ -1,34 +1,13 @@
-# Current Feature: Navbar + Cart Drawer + Wishlist Drawer + Footer (/layout)
+# Current Feature
 
 ## Feature File
-`context/features/02-navbar-drawers-footer.md`
 
-## What to Build
-1. `lib/cartStore.ts` — Zustand cart store with localStorage persist (items, totalItems, totalAmount, addItem, removeItem, clearCart)
-2. `lib/wishlistStore.ts` — Zustand wishlist store with localStorage persist (items, totalItems, addItem, removeItem, isInWishlist)
-3. `components/Navbar.tsx` — Fixed top navbar with logo, links, icons, Clerk UserButton, opens cart/wishlist drawers
-4. `components/CartDrawer.tsx` — Shadcn Sheet from right, cart items list, subtotal, clear + checkout buttons
-5. `components/WishlistDrawer.tsx` — Shadcn Sheet from right, wishlist items, add to cart + remove buttons
-6. `components/Footer.tsx` — Black 4-column footer with links and copyright bar
-7. `app/layout.tsx` — Mount Navbar, Footer, CartDrawer, WishlistDrawer, ClerkProvider, ConvexProvider
-
-## Build Order
-Build in the order listed above — stores first so components can import them, layout last so it wires everything together.
-
-## Design Reference
-- UI reference: old project files pasted in planning chat
-- Navbar: white bg, logo left, nav center, icons right
-- Drawers: right slide-in, max-w-md, white bg
-- Footer: black bg, 4 columns, collapses on mobile
+## Goals
 
 ## Notes
-- Use `next/image` for logo and drawer product images — not `<img>`
-- Use `next/link` for all nav links — not `<a>`
-- Use Shadcn `Sheet` for both drawers — not custom fixed overlay
-- Cart/Wishlist drawer open state lives in Navbar (useState), passed as props or use a simple Zustand UI store
-- public/assets/ must be populated from old project before running Claude Code
 
 ## Status
-`In Progress`
+`Not Started`
 
 ## History
+- `Navbar + Cart Drawer + Wishlist Drawer + Footer` — built Zustand stores `cartStore.ts` (items, totalItems/totalAmount derived, addItem merges by id+size, removeItem, updateQuantity, clearCart, localStorage persist with totals recomputed on rehydrate) and `wishlistStore.ts` (items, totalItems, addItem/removeItem/toggleItem/isInWishlist, persist); added ephemeral `uiStore.ts` so navbar icons open the sibling drawers without prop-drilling; added `formatZAR` helper to `lib/utils.ts` (R1799.99, no space). Installed shadcn `sheet`. Built `Navbar.tsx` (sticky white bar, next/image logo, Home/Shop/Contact links, lucide search/wishlist/cart/profile icons with red count badges, mobile hamburger dropdown, mounted-guard for hydration), `CartDrawer.tsx` + `WishlistDrawer.tsx` (shadcn Sheet right slide-in `sm:max-w-md`, item rows, subtotal + Clear/Checkout, Add to Cart/Remove, empty states → /shop), `Footer.tsx` (black 4-column grid, collapses on mobile, copyright bar); mounted all four in `layout.tsx`. Clerk UserButton deferred (no Clerk keys in env) — used profile-icon placeholder. `npm run build` passes. Committed together with the project scaffold as the first real commit (no remote configured — not pushed). Status: `Complete`
