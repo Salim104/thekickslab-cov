@@ -1,5 +1,21 @@
-import { query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+
+// Shared field validators for create/update so the two stay in sync.
+const productFields = {
+  name: v.string(),
+  brand: v.string(),
+  slug: v.string(),
+  price: v.number(),
+  originalPrice: v.number(),
+  discountPercent: v.number(),
+  images: v.array(v.string()),
+  category: v.string(),
+  sizes: v.array(v.string()),
+  inStock: v.boolean(),
+  isBestSeller: v.boolean(),
+  isOnDeal: v.boolean(),
+};
 
 // All products, newest first. Homepage Shop All uses the first 8.
 export const getAll = query({
@@ -60,5 +76,35 @@ export const getRelated = query({
           (p.brand === brand || p.category === category)
       )
       .slice(0, 3);
+  },
+});
+
+// --- Admin mutations -------------------------------------------------------
+// NOTE: these are not yet auth-gated. The /admin auth gate is a deliberate TODO
+// (no Clerk keys in env). Add a role check here once Clerk + the user webhook
+// are wired so these can't be called by non-admins.
+
+// Create a new product. Returns the new id.
+export const create = mutation({
+  args: productFields,
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("products", args);
+  },
+});
+
+// Update an existing product by id.
+export const update = mutation({
+  args: { id: v.id("products"), ...productFields },
+  handler: async (ctx, { id, ...fields }) => {
+    await ctx.db.patch(id, fields);
+    return id;
+  },
+});
+
+// Delete a product by id.
+export const remove = mutation({
+  args: { id: v.id("products") },
+  handler: async (ctx, { id }) => {
+    await ctx.db.delete(id);
   },
 });

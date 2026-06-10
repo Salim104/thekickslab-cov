@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import CartDrawer from "@/components/CartDrawer";
-import WishlistDrawer from "@/components/WishlistDrawer";
+import StoreChrome from "@/components/StoreChrome";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -38,11 +35,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ConvexClientProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <CartDrawer />
-          <WishlistDrawer />
+          <StoreChrome>{children}</StoreChrome>
           <Toaster />
         </ConvexClientProvider>
       </body>
