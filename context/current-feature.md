@@ -1,13 +1,29 @@
-# Current Feature
+# Current Feature: Shop Page
 
 ## Feature File
+`context/features/05-shop-page.md`
 
 ## Goals
+- `/shop` route: full product catalogue from Convex with sidebar filters + product grid
+- "Showing X - Y of Z results" label that updates with filters
+- Sidebar — real-time search by name, price range slider (R1000 → R{value}, max R2000) applied via black Filter button, brand categories list with counts (click filters by brand), static "NEW BALANCE 550" tag
+- Grid — sort dropdown (Default / Price Low-High / Price High-Low), responsive 3/2/1 columns, reuses shared `ProductCard`
+- Pagination — 12 per page, numbered circle buttons + NEXT, active page = black circle
+- Mobile — sidebar collapses behind a "Filter" button that opens it as a Shadcn Sheet drawer
+- Convex: `api.products.getFiltered` (search/brand/maxPrice/sort) + `api.products.getBrands` (distinct brands with counts)
+- Loading via Skeleton; empty state "No products found"
 
 ## Notes
+- Filtering done client-side (12 products fit in memory — no server pagination yet)
+- Categories derived from products: adidas (2), Jordan (2), Nike (2), New Balance (6)
+- Product tags section static for now — just "NEW BALANCE 550"
+- Price slider min fixed at R1000 (matches old design "Price: R1000 — R{value}")
+- UI reference: old project `src/pages/Shop.jsx`
+- Components: `app/shop/page.tsx` (server shell), `components/ShopClient.tsx` ("use client" — filter/sort/pagination state), `components/FilterSidebar.tsx`, `components/SortDropdown.tsx`
+- Cloudinary still unconfigured in prior features → expect next/image, not CldImage (verify before building)
 
 ## Status
-`Not Started`
+`In Progress`
 
 ## History
 - `Navbar + Cart Drawer + Wishlist Drawer + Footer` — built Zustand stores `cartStore.ts` (items, totalItems/totalAmount derived, addItem merges by id+size, removeItem, updateQuantity, clearCart, localStorage persist with totals recomputed on rehydrate) and `wishlistStore.ts` (items, totalItems, addItem/removeItem/toggleItem/isInWishlist, persist); added ephemeral `uiStore.ts` so navbar icons open the sibling drawers without prop-drilling; added `formatZAR` helper to `lib/utils.ts` (R1799.99, no space). Installed shadcn `sheet`. Built `Navbar.tsx` (sticky white bar, next/image logo, Home/Shop/Contact links, lucide search/wishlist/cart/profile icons with red count badges, mobile hamburger dropdown, mounted-guard for hydration), `CartDrawer.tsx` + `WishlistDrawer.tsx` (shadcn Sheet right slide-in `sm:max-w-md`, item rows, subtotal + Clear/Checkout, Add to Cart/Remove, empty states → /shop), `Footer.tsx` (black 4-column grid, collapses on mobile, copyright bar); mounted all four in `layout.tsx`. Clerk UserButton deferred (no Clerk keys in env) — used profile-icon placeholder. `npm run build` passes. Committed together with the project scaffold as the first real commit (no remote configured — not pushed). Status: `Complete`
