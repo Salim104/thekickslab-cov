@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "../../../convex/_generated/api";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 export const metadata: Metadata = {
@@ -6,14 +10,21 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  // TODO(auth): gate this layout once Clerk is configured.
-  //   1. `middleware.ts` with clerkMiddleware() matching /admin/* → redirect
-  //      unauthenticated users to /sign-in.
-  //   2. Here (or a server util): read the Clerk userId, look up the Convex
-  //      `users` record by clerkId, and redirect("/") if role !== "admin".
-  // Skipped for now: no Clerk keys in env, and wiring Clerk globally would
-  // break the public site. CRUD below works without it.
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  // Auth gate (Clerk now wired). The proxy redirects unauthenticated users to
+  // /sign-in; here we additionally require the "admin" role from the Convex
+  // `users` record. Non-admins are bounced to the storefront.
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const user = await fetchQuery(api.users.getByClerkId, { clerkId: userId });
+  if (!user || user.role !== "admin") redirect("/");
+
+  // NOTE: the admin Convex mutations (products.create/update/remove,
+  // users.updateRole) are still not auth-checked at the Convex layer. This
+  // layout + proxy gate the UI, but hardening those mutations needs identity in
+  // Convex (ConvexProviderWithClerk + a Clerk JWT template + ctx.auth checks) —
+  // a follow-up beyond this feature's scope.
 
   return (
     <div className="flex min-h-screen bg-gray-50">

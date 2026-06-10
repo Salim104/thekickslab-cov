@@ -6,8 +6,8 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, Heart, Minus, Plus } from "lucide-react";
 
 import { formatZAR } from "@/lib/utils";
-import { useCartStore } from "@/lib/cartStore";
-import { useWishlistStore } from "@/lib/wishlistStore";
+import { useCart } from "@/lib/useCart";
+import { useWishlist } from "@/lib/useWishlist";
 import { useUIStore } from "@/lib/uiStore";
 import { Button } from "@/components/ui/button";
 import type { Doc } from "../../convex/_generated/dataModel";
@@ -31,11 +31,10 @@ export default function ProductDetailClient({
   const [quantity, setQuantity] = useState(1);
   const [tab, setTab] = useState<"description" | "reviews">("description");
 
-  const addToCart = useCartStore((s) => s.addItem);
+  const { addItem: addToCart } = useCart();
   const openCart = useUIStore((s) => s.openCart);
 
-  const toggleWishlist = useWishlistStore((s) => s.toggleItem);
-  const isInWishlist = useWishlistStore((s) => s.isInWishlist);
+  const { toggleItem: toggleWishlist, isInWishlist } = useWishlist();
   const wishlisted = isInWishlist(product._id);
 
   const image = gallery[mainIndex] ?? "";

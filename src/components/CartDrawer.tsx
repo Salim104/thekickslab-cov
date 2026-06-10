@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Trash2, ShoppingBag } from "lucide-react";
 
 import { formatZAR } from "@/lib/utils";
-import { useCartStore } from "@/lib/cartStore";
+import { useCart } from "@/lib/useCart";
 import { useUIStore } from "@/lib/uiStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,11 +20,7 @@ export default function CartDrawer() {
   const open = useUIStore((s) => s.cartOpen);
   const setOpen = useUIStore((s) => s.setCartOpen);
 
-  const items = useCartStore((s) => s.items);
-  const totalItems = useCartStore((s) => s.totalItems);
-  const totalAmount = useCartStore((s) => s.totalAmount);
-  const removeItem = useCartStore((s) => s.removeItem);
-  const clearCart = useCartStore((s) => s.clearCart);
+  const { items, totalItems, totalAmount, removeItem, clear } = useCart();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -46,10 +42,7 @@ export default function CartDrawer() {
             <div className="flex-1 overflow-y-auto px-4">
               <ul className="divide-y divide-neutral-100">
                 {items.map((item) => (
-                  <li
-                    key={`${item.id}-${item.size}`}
-                    className="flex gap-3 py-4"
-                  >
+                  <li key={item.key} className="flex gap-3 py-4">
                     <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-neutral-50">
                       <Image
                         src={item.image}
@@ -77,7 +70,7 @@ export default function CartDrawer() {
                     <button
                       type="button"
                       aria-label={`Remove ${item.name}`}
-                      onClick={() => removeItem(item.id, item.size)}
+                      onClick={() => removeItem(item)}
                       className="self-start rounded-md p-1.5 text-neutral-400 transition-colors hover:text-red-600"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -96,11 +89,7 @@ export default function CartDrawer() {
                 {/* /checkout doesn't exist yet — added in a later phase */}
                 <Link href="/checkout">Checkout</Link>
               </Button>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={clearCart}
-              >
+              <Button variant="outline" className="w-full" onClick={clear}>
                 Clear Cart
               </Button>
             </SheetFooter>
