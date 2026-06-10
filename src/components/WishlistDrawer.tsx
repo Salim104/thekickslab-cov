@@ -5,8 +5,8 @@ import Image from "next/image";
 import { Heart } from "lucide-react";
 
 import { formatZAR } from "@/lib/utils";
-import { useWishlistStore } from "@/lib/wishlistStore";
-import { useCartStore } from "@/lib/cartStore";
+import { useWishlist } from "@/lib/useWishlist";
+import { useCart } from "@/lib/useCart";
 import { useUIStore } from "@/lib/uiStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,10 +20,8 @@ export default function WishlistDrawer() {
   const open = useUIStore((s) => s.wishlistOpen);
   const setOpen = useUIStore((s) => s.setWishlistOpen);
 
-  const items = useWishlistStore((s) => s.items);
-  const totalItems = useWishlistStore((s) => s.totalItems);
-  const removeItem = useWishlistStore((s) => s.removeItem);
-  const addToCart = useCartStore((s) => s.addItem);
+  const { items, totalItems, removeItem } = useWishlist();
+  const { addItem: addToCart } = useCart();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -46,7 +44,7 @@ export default function WishlistDrawer() {
           <div className="flex-1 overflow-y-auto px-4">
             <ul className="divide-y divide-neutral-100">
               {items.map((item) => (
-                <li key={item.id} className="flex gap-3 py-4">
+                <li key={item.key} className="flex gap-3 py-4">
                   <Link
                     href={`/product/${item.slug}`}
                     onClick={() => setOpen(false)}
@@ -79,7 +77,7 @@ export default function WishlistDrawer() {
                         className="bg-neutral-900 text-white hover:bg-neutral-800"
                         onClick={() =>
                           addToCart({
-                            id: item.id,
+                            id: item.productId,
                             slug: item.slug,
                             name: item.name,
                             image: item.image,
@@ -93,7 +91,7 @@ export default function WishlistDrawer() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item.productId)}
                       >
                         Remove
                       </Button>
