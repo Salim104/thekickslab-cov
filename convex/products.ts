@@ -32,6 +32,22 @@ export const getBySlug = query({
   },
 });
 
+// Distinct brand names with how many products each has, for the shop sidebar
+// "Product categories" list. Sorted by count desc, then name. Cheap at 12 rows.
+export const getBrands = query({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("products").collect();
+    const counts = new Map<string, number>();
+    for (const p of all) {
+      counts.set(p.brand, (counts.get(p.brand) ?? 0) + 1);
+    }
+    return Array.from(counts, ([brand, count]) => ({ brand, count })).sort(
+      (a, b) => b.count - a.count || a.brand.localeCompare(b.brand)
+    );
+  },
+});
+
 // Up to 3 products sharing the brand OR category, excluding the current product.
 export const getRelated = query({
   args: { brand: v.string(), category: v.string(), excludeSlug: v.string() },
