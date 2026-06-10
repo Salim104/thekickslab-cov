@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import WishlistDrawer from "@/components/WishlistDrawer";
+import ConvexClientProvider from "@/components/ConvexClientProvider";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -35,11 +36,13 @@ export default function RootLayout({
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
       <body className="min-h-full flex flex-col">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <CartDrawer />
-        <WishlistDrawer />
+        <ConvexClientProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <CartDrawer />
+          <WishlistDrawer />
+        </ConvexClientProvider>
       </body>
     </html>
   );
