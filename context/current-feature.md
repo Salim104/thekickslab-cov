@@ -1,13 +1,34 @@
-# Current Feature
+# Current Feature: Admin Dashboard
 
 ## Feature File
+`context/features/07-admin-dashboard.md`
 
 ## Goals
+- Protected `/admin` area (Clerk middleware + Convex `role: "admin"` check); redirect unauthenticated → `/sign-in`, non-admin → `/`
+- Admin layout: left sidebar (logo, Products/Orders/Users nav, sign out) + top bar (page title + primary action)
+- Products table (`/admin/products`): Shadcn DataTable — Image/Name/Brand/Category/Price/Original/Discount/In Stock/Best Seller/On Deal/Actions; name search; 10/page pagination; Edit + Delete (AlertDialog confirm)
+- Product form (add `/admin/products/new` + edit `/admin/products/[slug]/edit`): all fields, slug auto-gen from name (editable), discount % auto-calc `Math.round((1 - sale/original)*100)`, sizes tag multi-select 6–12, three toggles
+- Custom (non-Shadcn) image modal: thumbnail grid + `CldUploadWidget` upload, per-thumb delete ×, Done closes and updates `images[]`
+- Users table (`/admin/users`): DataTable — Name/Email/Role/Joined/Actions; toggle role customer↔admin; name/email search; 10/page
+- Orders page (`/admin/orders`): "Orders coming in Phase 3" placeholder, same layout
+- New Convex: `products.create`/`update`/`delete`, `users.getAll`/`updateRole`
+- `npm run build` passes; desktop-only (1280px), no mobile layout
 
 ## Notes
+- Desktop-only — no mobile layout required
+- First admin: set `role: "admin"` manually in Convex dashboard for client's account
+- `CldUploadWidget` needs `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (spec says already set — verify; prior features noted Cloudinary unconfigured)
+- Install `@tanstack/react-table` via `npx shadcn@latest add table`
+- **No Clerk keys in env** has blocked auth in every prior feature (Navbar used a profile-icon placeholder, no `<UserButton>`/middleware exist yet) — middleware + role gating may be unverifiable locally; confirm Clerk is actually configured before relying on it
+- Custom image modal must NOT use Shadcn Dialog — build from scratch (fixed overlay, white card, centered, `max-w-2xl`)
+
+### Decisions (start)
+- Verified env: **no Clerk keys**, **no `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`** (spec's "already set" is wrong), no `middleware.ts`, no `<ClerkProvider>` mounted. `@clerk/nextjs` + `next-cloudinary` are installed; `@tanstack/react-table` is not.
+- **Auth gate → build CRUD now, auth stub.** Build all tables/forms/Convex mutations fully (verifiable); leave the auth gate as a clearly-marked TODO stub — NO Clerk wiring (avoids breaking the live public site, which Clerk's provider/middleware would do without keys). Wire Clerk later when keys exist.
+- **Image upload → build modal, gate the widget.** Build the full custom modal + `CldUploadWidget` as specced; it renders and the grid/delete/form-state all work, but real uploads need the cloud name in env.
 
 ## Status
-`Not Started`
+`In Progress`
 
 ## History
 - `Navbar + Cart Drawer + Wishlist Drawer + Footer` — built Zustand stores `cartStore.ts` (items, totalItems/totalAmount derived, addItem merges by id+size, removeItem, updateQuantity, clearCart, localStorage persist with totals recomputed on rehydrate) and `wishlistStore.ts` (items, totalItems, addItem/removeItem/toggleItem/isInWishlist, persist); added ephemeral `uiStore.ts` so navbar icons open the sibling drawers without prop-drilling; added `formatZAR` helper to `lib/utils.ts` (R1799.99, no space). Installed shadcn `sheet`. Built `Navbar.tsx` (sticky white bar, next/image logo, Home/Shop/Contact links, lucide search/wishlist/cart/profile icons with red count badges, mobile hamburger dropdown, mounted-guard for hydration), `CartDrawer.tsx` + `WishlistDrawer.tsx` (shadcn Sheet right slide-in `sm:max-w-md`, item rows, subtotal + Clear/Checkout, Add to Cart/Remove, empty states → /shop), `Footer.tsx` (black 4-column grid, collapses on mobile, copyright bar); mounted all four in `layout.tsx`. Clerk UserButton deferred (no Clerk keys in env) — used profile-icon placeholder. `npm run build` passes. Committed together with the project scaffold as the first real commit (no remote configured — not pushed). Status: `Complete`
