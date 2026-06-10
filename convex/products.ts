@@ -1,4 +1,5 @@
 import { query } from "./_generated/server";
+import { v } from "convex/values";
 
 // All products, newest first. Homepage Shop All uses the first 8.
 export const getAll = query({
@@ -17,5 +18,31 @@ export const getBestSellers = query({
       .withIndex("by_bestSeller", (q) => q.eq("isBestSeller", true))
       .collect();
     return bestSellers.slice(0, 3);
+  },
+});
+
+// Single product by slug, or null if not found. Used by the product detail page.
+export const getBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    return await ctx.db
+      .query("products")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+  },
+});
+
+// Up to 3 products sharing the brand OR category, excluding the current product.
+export const getRelated = query({
+  args: { brand: v.string(), category: v.string(), excludeSlug: v.string() },
+  handler: async (ctx, { brand, category, excludeSlug }) => {
+    const all = await ctx.db.query("products").collect();
+    return all
+      .filter(
+        (p) =>
+          p.slug !== excludeSlug &&
+          (p.brand === brand || p.category === category)
+      )
+      .slice(0, 3);
   },
 });
