@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import WishlistDrawer from "@/components/WishlistDrawer";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -42,6 +43,7 @@ export default function RootLayout({
           <Footer />
           <CartDrawer />
           <WishlistDrawer />
+          <Toaster />
         </ConvexClientProvider>
       </body>
     </html>
