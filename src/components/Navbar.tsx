@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Search, Heart, ShoppingBag, User, Menu, X } from "lucide-react";
+import { UserButton, useUser } from "@clerk/nextjs";
 
 import { cn } from "@/lib/utils";
-import { useCartStore } from "@/lib/cartStore";
-import { useWishlistStore } from "@/lib/wishlistStore";
+import { useCart } from "@/lib/useCart";
+import { useWishlist } from "@/lib/useWishlist";
 import { useUIStore } from "@/lib/uiStore";
 
 const NAV_LINKS = [
@@ -29,12 +30,15 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const cartCount = useCartStore((s) => s.totalItems);
-  const wishlistCount = useWishlistStore((s) => s.totalItems);
+  const cartCount = useCart().totalItems;
+  const wishlistCount = useWishlist().totalItems;
   const openCart = useUIStore((s) => s.openCart);
   const openWishlist = useUIStore((s) => s.openWishlist);
+  const { isLoaded, isSignedIn } = useUser();
 
   // Avoid hydration mismatch: persisted counts only render after mount.
+  // Setting state on mount is intentional here (one-shot hydration guard).
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   return (
@@ -95,14 +99,26 @@ export default function Navbar() {
             {mounted && <Badge count={cartCount} />}
           </button>
 
-          {/* Profile — placeholder for Clerk UserButton (auth wired in a later phase) */}
-          <Link
-            href="/account"
-            aria-label="Account"
-            className="rounded-md p-2 text-neutral-800 transition-colors hover:text-red-600"
-          >
-            <User className="h-5 w-5" />
-          </Link>
+          {/* Profile — logged out links to sign-in, logged in shows Clerk UserButton.
+              Until Clerk loads, show a non-interactive placeholder to avoid a flash. */}
+          {!isLoaded ? (
+            <span className="p-2 text-neutral-300" aria-hidden>
+              <User className="h-5 w-5" />
+            </span>
+          ) : isSignedIn ? (
+            <div className="flex items-center px-1">
+              {/* afterSignOutUrl is set globally on <ClerkProvider> in layout.tsx */}
+              <UserButton userProfileMode="navigation" userProfileUrl="/account" />
+            </div>
+          ) : (
+            <Link
+              href="/sign-in"
+              aria-label="Sign in"
+              className="rounded-md p-2 text-neutral-800 transition-colors hover:text-red-600"
+            >
+              <User className="h-5 w-5" />
+            </Link>
+          )}
 
           {/* Mobile hamburger */}
           <button

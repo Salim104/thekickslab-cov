@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import CartDrawer from "@/components/CartDrawer";
-import WishlistDrawer from "@/components/WishlistDrawer";
+import StoreChrome from "@/components/StoreChrome";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
+import AuthMergeProvider from "@/components/AuthMergeProvider";
+import { clerkAppearance } from "@/lib/clerkAppearance";
 import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
@@ -37,14 +37,13 @@ export default function RootLayout({
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
       <body className="min-h-full flex flex-col">
-        <ConvexClientProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <CartDrawer />
-          <WishlistDrawer />
-          <Toaster />
-        </ConvexClientProvider>
+        <ClerkProvider appearance={clerkAppearance} afterSignOutUrl="/">
+          <ConvexClientProvider>
+            <AuthMergeProvider />
+            <StoreChrome>{children}</StoreChrome>
+            <Toaster />
+          </ConvexClientProvider>
+        </ClerkProvider>
       </body>
     </html>
   );
