@@ -37,4 +37,45 @@ export default defineSchema({
     size: v.string(),
     quantity: v.number(),
   }).index("by_user", ["userId"]),
+
+  orders: defineTable({
+    // Null for guest checkout; set when the buyer is signed in.
+    userId: v.optional(v.id("users")),
+    orderNumber: v.string(), // TKL-YYYYMMDD-XXXX
+    items: v.array(
+      v.object({
+        productId: v.id("products"),
+        name: v.string(),
+        image: v.string(),
+        size: v.string(),
+        quantity: v.number(),
+        price: v.number(),
+      })
+    ),
+    shipping: v.object({
+      firstName: v.string(),
+      lastName: v.string(),
+      email: v.string(),
+      phone: v.string(),
+      address1: v.string(),
+      address2: v.optional(v.string()),
+      city: v.string(),
+      province: v.string(),
+      postalCode: v.string(),
+    }),
+    subtotal: v.number(),
+    total: v.number(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("paid"),
+      v.literal("shipped"),
+      v.literal("delivered"),
+      v.literal("cancelled")
+    ),
+    stripePaymentIntentId: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_orderNumber", ["orderNumber"])
+    .index("by_user", ["userId"])
+    .index("by_paymentIntent", ["stripePaymentIntentId"]),
 });

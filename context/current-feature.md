@@ -1,13 +1,36 @@
-# Current Feature
+# Current Feature: Stripe Payments + Checkout
 
 ## Feature File
+`context/features/09-stripe-payments.md`
 
 ## Goals
+- Multi-step checkout at `/checkout`: Step 1 Cart Review → Step 2 Shipping Details → Step 3 Payment, with a step indicator showing current progress
+- Step 1: list cart items (thumb/name/size/qty/price), per-row qty adjust + remove, ZAR subtotal, "Proceed to Shipping"; empty-cart state + "← Continue Shopping" → /shop
+- Step 2: react-hook-form + Zod shipping form (first/last name, email, phone, address1, address2 optional, city, province dropdown of 9 SA provinces, postal code), inline errors, order-summary sidebar, Back to Cart / Proceed to Payment
+- Step 3: Stripe Elements card input, order summary (subtotal + shipping TBD + total), "Pay R{total}" with loading state, success → /checkout/success, failure → inline error (no redirect), Back to Shipping
+- `/checkout/success` (Order Confirmed 🎉, order number, summary, Continue Shopping / View My Orders) and `/checkout/cancelled` (Payment Cancelled, cart-saved msg, Try Again / Continue Shopping)
+- New Convex `orders` table + mutations/queries: `create` (from webhook), `getAll` (admin), `getByUser` (account), `getByOrderNumber` (success page)
+- Stripe integration: Server Action `createPaymentIntent` (ZAR, amount in cents → clientSecret) + webhook `/api/stripe/webhook` listening for `payment_intent.succeeded` → creates Convex order + triggers Resend emails
+- Resend: customer confirmation email + admin notification email (`OrderConfirmationEmail.tsx`, `AdminOrderEmail.tsx`), brand-styled
+- Admin: replace `/admin/orders` placeholder with real Shadcn/TanStack DataTable (Order#/Customer/Items/Total/Status/Date/Actions, status dropdown per row, search, 10/page)
+- Account: orders tab shows the signed-in user's real orders
+- Guest checkout allowed (no Clerk auth); attach userId only if signed in
+- Order number format `TKL-YYYYMMDD-XXXX`; Stripe test card 4242… processes; mobile 375px + desktop 1280px; `npm run build` passes
 
 ## Notes
+- **Stripe test mode first.** Install: `npm install @stripe/stripe-js @stripe/react-stripe-js stripe`
+- Env (in `.env.local`, NOT Convex env): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` — verify these are actually set before assuming the flow runs end-to-end (prior features repeatedly found spec env claims wrong)
+- Amounts in cents: R1799.99 → 179999; currency code `"zar"`
+- Webhook needs local tunnel for dev: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
+- Order number: `TKL-${YYYYMMDD}-${Math.random().toString(36).substr(2,4).toUpperCase()}`
+- Order created in the **webhook** (server-trusted `payment_intent.succeeded`), not client-side — emails fire there too
+- Orders table schema: userId optional Id<"users"> (null for guest), orderNumber, items[] {productId,name,image,size,quantity,price}, shipping {…9 fields}, subtotal, total, status enum (pending|paid|shipped|delivered|cancelled), stripePaymentIntentId, createdAt
+- Reuse the existing `useCart` hook (Convex-or-localStorage) for cart data; reuse the shared `ProductCard`/`OrderSummary` patterns; sonner for toasts; existing Resend `from "The Kicks Lab <onboarding@resend.dev>"` setup
+- Account orders tab + admin orders table both currently placeholders — this feature makes them real
+- Per Git Rules: branch `feature/stripe-payments` off `dev`
 
 ## Status
-`Not Started`
+`In Progress`
 
 ## History
 - `Navbar + Cart Drawer + Wishlist Drawer + Footer` — built Zustand stores `cartStore.ts` (items, totalItems/totalAmount derived, addItem merges by id+size, removeItem, updateQuantity, clearCart, localStorage persist with totals recomputed on rehydrate) and `wishlistStore.ts` (items, totalItems, addItem/removeItem/toggleItem/isInWishlist, persist); added ephemeral `uiStore.ts` so navbar icons open the sibling drawers without prop-drilling; added `formatZAR` helper to `lib/utils.ts` (R1799.99, no space). Installed shadcn `sheet`. Built `Navbar.tsx` (sticky white bar, next/image logo, Home/Shop/Contact links, lucide search/wishlist/cart/profile icons with red count badges, mobile hamburger dropdown, mounted-guard for hydration), `CartDrawer.tsx` + `WishlistDrawer.tsx` (shadcn Sheet right slide-in `sm:max-w-md`, item rows, subtotal + Clear/Checkout, Add to Cart/Remove, empty states → /shop), `Footer.tsx` (black 4-column grid, collapses on mobile, copyright bar); mounted all four in `layout.tsx`. Clerk UserButton deferred (no Clerk keys in env) — used profile-icon placeholder. `npm run build` passes. Committed together with the project scaffold as the first real commit (no remote configured — not pushed). Status: `Complete`

@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { Id } from "../../../convex/_generated/dataModel";
 import AccountWishlist from "./AccountWishlist";
+import AccountOrders from "./AccountOrders";
 
 type Tab = "profile" | "wishlist" | "orders";
 
@@ -85,19 +85,7 @@ export default function AccountTabs({
 
       {tab === "wishlist" && <AccountWishlist convexUserId={convexUserId} />}
 
-      {tab === "orders" && (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 py-16 text-center">
-          <p className="mb-4 text-gray-600">
-            Your orders will appear here once you make a purchase.
-          </p>
-          <Link
-            href="/shop"
-            className="rounded-md bg-black px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
-          >
-            Shop Now
-          </Link>
-        </div>
-      )}
+      {tab === "orders" && <AccountOrders convexUserId={convexUserId} />}
     </div>
   );
 }
