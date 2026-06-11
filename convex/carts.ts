@@ -1,5 +1,19 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import type { QueryCtx, MutationCtx } from "./_generated/server";
+
+// Resolve the authenticated caller's Convex user row from their Clerk JWT, or
+// throw. `identity.subject` is the Clerk user id, matched against `clerkId`.
+async function requireUser(ctx: QueryCtx | MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Unauthorized");
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
+    .unique();
+  if (!user) throw new Error("Unauthorized");
+  return user;
+}
 
 // Cart rows for a user, each joined to its product. Skips rows whose product was
 // since deleted. The `cartId` is the row id so the UI can edit/remove a line.
@@ -32,6 +46,8 @@ export const addItem = mutation({
     quantity: v.number(),
   },
   handler: async (ctx, { userId, productId, size, quantity }) => {
+    const caller = await requireUser(ctx);
+    if (caller._id !== userId) throw new Error("Unauthorized");
     const rows = await ctx.db
       .query("carts")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -54,6 +70,9 @@ export const addItem = mutation({
 export const updateQuantity = mutation({
   args: { id: v.id("carts"), quantity: v.number() },
   handler: async (ctx, { id, quantity }) => {
+    const caller = await requireUser(ctx);
+    const row = await ctx.db.get(id);
+    if (!row || row.userId !== caller._id) throw new Error("Unauthorized");
     if (quantity < 1) {
       await ctx.db.delete(id);
       return;
@@ -66,6 +85,9 @@ export const updateQuantity = mutation({
 export const remove = mutation({
   args: { id: v.id("carts") },
   handler: async (ctx, { id }) => {
+    const caller = await requireUser(ctx);
+    const row = await ctx.db.get(id);
+    if (!row || row.userId !== caller._id) throw new Error("Unauthorized");
     await ctx.db.delete(id);
   },
 });
@@ -74,6 +96,8 @@ export const remove = mutation({
 export const clearByUser = mutation({
   args: { userId: v.id("users") },
   handler: async (ctx, { userId }) => {
+    const caller = await requireUser(ctx);
+    if (caller._id !== userId) throw new Error("Unauthorized");
     const rows = await ctx.db
       .query("carts")
       .withIndex("by_user", (q) => q.eq("userId", userId))

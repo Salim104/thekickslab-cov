@@ -37,6 +37,8 @@ export default function Navbar() {
   const { isLoaded, isSignedIn } = useUser();
 
   // Avoid hydration mismatch: persisted counts only render after mount.
+  // Setting state on mount is intentional here (one-shot hydration guard).
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   return (

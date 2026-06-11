@@ -1,5 +1,19 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import type { QueryCtx, MutationCtx } from "./_generated/server";
+
+// Resolve the authenticated caller's Convex user row from their Clerk JWT, or
+// throw. `identity.subject` is the Clerk user id, matched against `clerkId`.
+async function requireUser(ctx: QueryCtx | MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Unauthorized");
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
+    .unique();
+  if (!user) throw new Error("Unauthorized");
+  return user;
+}
 
 // All users, newest first. Used by the admin Users table.
 export const getAll = query({
@@ -46,14 +60,16 @@ export const createFromClerk = mutation({
 });
 
 // Toggle a user's role between "customer" and "admin".
-// NOTE: not yet auth-gated — see the note in convex/products.ts. Add an admin
-// role check here once Clerk is wired so a non-admin can't promote themselves.
+// Admin-only: the caller must be an authenticated user whose own role is "admin",
+// so a customer can't promote themselves.
 export const updateRole = mutation({
   args: {
     id: v.id("users"),
     role: v.union(v.literal("customer"), v.literal("admin")),
   },
   handler: async (ctx, { id, role }) => {
+    const caller = await requireUser(ctx);
+    if (caller.role !== "admin") throw new Error("Unauthorized");
     await ctx.db.patch(id, { role });
     return id;
   },
